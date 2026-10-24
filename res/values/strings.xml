@@ -315,4 +315,9 @@
     <!-- Placeholder string when there is no history to be shown. [CHAR_LIMIT=40] -->
     <string name="no_history">No History</string>
 
+    <string name="desc_parentheses">Insert opening or closing parenthesis</string>
+    <string name="desc_change_sign">Change sign of expression</string>
+    <string name="desc_scientific">Show or hide scientific functions</string>
+    <string name="menu_source_code">Source code</string>
+    <string name="source_code_url" translatable="false">https://github.com/ifny75/platform_packages_apps_ExactCalculator</string>
 </resources>

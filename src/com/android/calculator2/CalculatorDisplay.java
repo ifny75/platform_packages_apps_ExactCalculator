@@ -46,6 +46,9 @@ public class CalculatorDisplay extends LinearLayout
         public void run() {
             // Remove any duplicate callbacks to hide the toolbar.
             removeCallbacks(this);
+            if (getForceToolbarVisible()) {
+                return;
+            }
 
             // Only animate if we have been laid out at least once.
             if (isLaidOut()) {
@@ -62,6 +65,7 @@ public class CalculatorDisplay extends LinearLayout
     private Transition mTransition;
 
     private boolean mForceToolbarVisible;
+    private boolean mToolbarPinned;
 
     public CalculatorDisplay(Context context) {
         this(context, null /* attrs */);
@@ -151,7 +155,17 @@ public class CalculatorDisplay extends LinearLayout
      * Returns {@code true} if the toolbar should remain visible.
      */
     public boolean getForceToolbarVisible() {
-        return mForceToolbarVisible || mAccessibilityManager.isEnabled();
+        return mToolbarPinned || mForceToolbarVisible || mAccessibilityManager.isEnabled();
+    }
+
+    /** Keep navigation available independently of popup-menu visibility. */
+    public void setToolbarPinned(boolean pinned) {
+        mToolbarPinned = pinned;
+        if (pinned) {
+            removeCallbacks(mHideToolbarRunnable);
+            TransitionManager.endTransitions(this);
+            showToolbar(false);
+        }
     }
 
     /**
@@ -172,7 +186,7 @@ public class CalculatorDisplay extends LinearLayout
      */
     public void showToolbar(boolean autoHide) {
         // Only animate if we have been laid out at least once.
-        if (isLaidOut()) {
+        if (isLaidOut() && mToolbar.getVisibility() != View.VISIBLE) {
             TransitionManager.beginDelayedTransition(this, mTransition);
         }
         mToolbar.setVisibility(View.VISIBLE);

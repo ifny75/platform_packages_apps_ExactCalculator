@@ -17,11 +17,16 @@
 
 <resources>
 
-    <style name="Theme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+    <style name="Theme" parent="@android:style/Theme.Material">
         <item name="android:colorPrimary">@color/calculator_primary_color</item>
         <item name="android:colorAccent">@color/calculator_accent_color</item>
-        <item name="android:statusBarColor">@color/calculator_accent_color</item>
+        <item name="android:statusBarColor">@color/calculator_statusbar_color</item>
+        <item name="android:navigationBarColor">@color/pad_numeric_background_color</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowBackground">@color/display_background_color</item>
         <item name="android:windowSoftInputMode">stateAlwaysHidden</item>
+        <item name="android:actionBarItemBackground">@drawable/action_button_background</item>
     </style>
 
     <style name="Theme.Calculator">

@@ -595,6 +595,76 @@ class CalculatorExpr {
         return mExpr.isEmpty();
     }
 
+    /** Close an outstanding group only after a complete operand. */
+    int nextParenthesis() {
+        int depth = 0;
+        for (Token token : mExpr) {
+            if (token instanceof Operator) {
+                int id = ((Operator) token).id;
+                if (id == R.id.lparen || KeyMaps.isFunc(id)) depth++;
+                if (id == R.id.rparen) depth--;
+            }
+        }
+        if (depth > 0 && !mExpr.isEmpty()) {
+            Token last = mExpr.get(mExpr.size() - 1);
+            if (!(last instanceof Operator)
+                    || ((Operator) last).id == R.id.rparen
+                    || ((Operator) last).id == R.id.const_pi
+                    || ((Operator) last).id == R.id.const_e
+                    || KeyMaps.isSuffix(((Operator) last).id)) {
+                return R.id.rparen;
+            }
+        }
+        return R.id.lparen;
+    }
+
+    /** Negate the whole expression while preserving its operator precedence. */
+    void negate() {
+        if (mExpr.isEmpty()) {
+            mExpr.add(new Operator(R.id.op_sub));
+            return;
+        }
+        // A second tap on the empty sign entry restores the empty expression.
+        if (mExpr.size() == 1 && mExpr.get(0) instanceof Operator
+                && ((Operator) mExpr.get(0)).id == R.id.op_sub) {
+            mExpr.clear();
+            return;
+        }
+        // Unwrap our own negation on a second tap, without growing the expression.
+        if (mExpr.size() >= 4 && isOperatorUnchecked(0, R.id.op_sub)
+                && isOperatorUnchecked(1, R.id.lparen)
+                && isOperatorUnchecked(mExpr.size() - 1, R.id.rparen)) {
+            int nesting = 1;
+            int end = 2;
+            for (; end < mExpr.size() && nesting > 0; end++) {
+                Token token = mExpr.get(end);
+                if (token instanceof Operator) {
+                    int id = ((Operator) token).id;
+                    if (id == R.id.lparen || KeyMaps.isFunc(id)) nesting++;
+                    if (id == R.id.rparen) nesting--;
+                }
+            }
+            if (end == mExpr.size() && nesting == 0) {
+                mExpr.remove(mExpr.size() - 1);
+                mExpr.subList(0, 2).clear();
+                return;
+            }
+        }
+        // Match any groups the parser would otherwise close implicitly.
+        int depth = 0;
+        for (Token token : mExpr) {
+            if (token instanceof Operator) {
+                int id = ((Operator) token).id;
+                if (id == R.id.lparen || KeyMaps.isFunc(id)) depth++;
+                if (id == R.id.rparen) depth--;
+            }
+        }
+        while (depth-- > 0) mExpr.add(new Operator(R.id.rparen));
+        mExpr.add(0, new Operator(R.id.lparen));
+        mExpr.add(0, new Operator(R.id.op_sub));
+        mExpr.add(new Operator(R.id.rparen));
+    }
+
     /**
      * Returns a logical deep copy of the CalculatorExpr.
      * Operator and PreEval tokens are immutable, and thus aren't really copied.

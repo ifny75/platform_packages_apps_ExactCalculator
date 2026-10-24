@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.calculator2.CalculatorKeypad xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/pad_numeric" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:paddingHorizontal="6dp" android:paddingBottom="8dp">
+    <Button android:id="@+id/clr" style="@style/ModernKey.Utility" android:text="C" android:contentDescription="@string/desc_clr" />
+    <Button android:id="@+id/smart_paren" style="@style/ModernKey.Utility" android:text="( )" android:contentDescription="@string/desc_parentheses" />
+    <Button android:id="@+id/op_pct" style="@style/ModernKey.Utility" android:text="@string/op_pct" android:contentDescription="@string/desc_op_pct" />
+    <Button android:id="@+id/op_div" style="@style/ModernKey.Accent" android:text="@string/op_div" android:contentDescription="@string/desc_op_div" />
+    <Button android:id="@+id/digit_7" style="@style/ModernKey" android:text="@string/digit_7" />
+    <Button android:id="@+id/digit_8" style="@style/ModernKey" android:text="@string/digit_8" />
+    <Button android:id="@+id/digit_9" style="@style/ModernKey" android:text="@string/digit_9" />
+    <Button android:id="@+id/op_mul" style="@style/ModernKey.Accent" android:text="@string/op_mul" android:contentDescription="@string/desc_op_mul" />
+    <Button android:id="@+id/digit_4" style="@style/ModernKey" android:text="@string/digit_4" />
+    <Button android:id="@+id/digit_5" style="@style/ModernKey" android:text="@string/digit_5" />
+    <Button android:id="@+id/digit_6" style="@style/ModernKey" android:text="@string/digit_6" />
+    <Button android:id="@+id/op_sub" style="@style/ModernKey.Accent" android:text="@string/op_sub" android:contentDescription="@string/desc_op_sub" />
+    <Button android:id="@+id/digit_1" style="@style/ModernKey" android:text="@string/digit_1" />
+    <Button android:id="@+id/digit_2" style="@style/ModernKey" android:text="@string/digit_2" />
+    <Button android:id="@+id/digit_3" style="@style/ModernKey" android:text="@string/digit_3" />
+    <Button android:id="@+id/op_add" style="@style/ModernKey.Accent" android:text="@string/op_add" android:contentDescription="@string/desc_op_add" />
+    <Button android:id="@+id/change_sign" style="@style/ModernKey" android:text="+/−" android:contentDescription="@string/desc_change_sign" />
+    <Button android:id="@+id/digit_0" style="@style/ModernKey" android:text="@string/digit_0" />
+    <Button android:id="@+id/dec_point" style="@style/ModernKey" android:contentDescription="@string/desc_dec_point" />
+    <Button android:id="@+id/eq" style="@style/ModernKey.Accent" android:text="@string/eq" android:contentDescription="@string/desc_eq" />
+</com.android.calculator2.CalculatorKeypad>

@@ -70,3 +70,14 @@ The original copyright notices and license terms in the repository continue to a
 <div align="center">
   <sub>Built on open source. Made for a simpler Android experience.</sub>
 </div>
+
+## Test the redesigned calculator
+
+Download the [tested preview APK](https://github.com/ifny75/platform_packages_apps_ExactCalculator/releases/download/ui-preview-2026-10-24/ExactCalculator-preview.apk) from the [preview release](https://github.com/ifny75/platform_packages_apps_ExactCalculator/releases/tag/ui-preview-2026-10-24).
+
+- Android 12 or newer; tested on a Pixel 10.
+- Installed name: **ExactCalculator Test**.
+- Preview application ID: `com.android.calculator2.visualtest`, so it installs alongside the system calculator.
+- This is a debug-signed test build. The Android platform build keeps its original application ID.
+
+The redesign includes circular keys, system AOSP accent colors, a landscape layout with separate display and keypads, a styled scientific panel and history, bounded touch feedback, and a persistent three-dot menu with a source-code link.

@@ -47,6 +47,7 @@ public class HistoryFragment extends Fragment implements DragLayout.DragCallback
     private ArrayList<HistoryItem> mDataSet = new ArrayList<>();
 
     private boolean mIsDisplayEmpty;
+    private boolean mModernLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,6 +60,7 @@ public class HistoryFragment extends Fragment implements DragLayout.DragCallback
             Bundle savedInstanceState) {
         final View view = inflater.inflate(
                 R.layout.fragment_history, container, false /* attachToRoot */);
+        mModernLayout = getActivity().findViewById(R.id.show_history) != null;
 
         mDragLayout = (DragLayout) container.getRootView().findViewById(R.id.drag_layout);
         mDragLayout.addDragCallback(this);
@@ -158,8 +160,10 @@ public class HistoryFragment extends Fragment implements DragLayout.DragCallback
         super.onStart();
 
         final Calculator activity = (Calculator) getActivity();
-        mDragController.initializeAnimation(activity.isResultLayout(), activity.isOneLine(),
-                mIsDisplayEmpty);
+        if (!mModernLayout) {
+            mDragController.initializeAnimation(activity.isResultLayout(), activity.isOneLine(),
+                    mIsDisplayEmpty);
+        }
     }
 
     @Override
@@ -224,7 +228,9 @@ public class HistoryFragment extends Fragment implements DragLayout.DragCallback
 
     @Override
     public void whileDragging(float yFraction) {
-        if (isVisible() || isRemoving()) {
+        // The new display and history cards have independent layouts. Slide the
+        // opaque history surface without morphing its text from the calculator.
+        if (!mModernLayout && (isVisible() || isRemoving())) {
             mDragController.animateViews(yFraction, mRecyclerView);
         }
     }

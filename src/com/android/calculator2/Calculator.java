@@ -372,6 +372,10 @@ public class Calculator extends Activity
 
         mMainCalculator = findViewById(R.id.main_calculator);
         mDisplayView = (CalculatorDisplay) findViewById(R.id.display);
+        if (findViewById(R.id.show_history) != null) {
+            // Pin the standard three-dot menu, including after a popup closes.
+            mDisplayView.setToolbarPinned(true);
+        }
         mModeView = (TextView) findViewById(R.id.mode);
         mFormulaText = (CalculatorFormula) findViewById(R.id.formula);
         mResultText = (CalculatorResult) findViewById(R.id.result);
@@ -491,7 +495,10 @@ public class Calculator extends Activity
             }
             mCurrentState = state;
 
-            if (mCurrentState == CalculatorState.RESULT) {
+            if (findViewById(R.id.show_history) != null) {
+                mDeleteButton.setVisibility(View.VISIBLE);
+                mClearButton.setVisibility(View.VISIBLE);
+            } else if (mCurrentState == CalculatorState.RESULT) {
                 // No longer do this for ERROR; allow mistakes to be corrected.
                 mDeleteButton.setVisibility(View.GONE);
                 mClearButton.setVisibility(View.VISIBLE);
@@ -724,6 +731,10 @@ public class Calculator extends Activity
             mModeToggle.setText(R.string.mode_deg);
             mModeToggle.setContentDescription(getString(R.string.desc_switch_deg));
         }
+        if (findViewById(R.id.show_history) != null) {
+            mModeToggle.setText(degreeMode ? R.string.mode_deg : R.string.mode_rad);
+            mModeToggle.setSelected(degreeMode);
+        }
     }
 
     private void removeHistoryFragment() {
@@ -828,6 +839,30 @@ public class Calculator extends Activity
 
         final int id = view.getId();
         switch (id) {
+            case R.id.show_history:
+                showHistoryFragment();
+                return;
+            case R.id.show_scientific:
+                mPadViewPager.setCurrentItem(mPadViewPager.getCurrentItem() == 0 ? 1 : 0, true);
+                view.setSelected(mPadViewPager.getCurrentItem() != 0);
+                return;
+            case R.id.smart_paren:
+                cancelIfEvaluating(false);
+                addExplicitKeyToExpr(mEvaluator.getExpr(Evaluator.MAIN_INDEX).nextParenthesis());
+                redisplayAfterFormulaChange();
+                break;
+            case R.id.change_sign:
+                cancelIfEvaluating(false);
+                if (haveUnprocessed()) {
+                    return;
+                }
+                if (mCurrentState == CalculatorState.RESULT) {
+                    switchToInput(R.id.op_sub);
+                }
+                mEvaluator.getExpr(Evaluator.MAIN_INDEX).negate();
+                mEvaluator.touch();
+                redisplayAfterFormulaChange();
+                break;
             case R.id.eq:
                 onEquals();
                 break;
@@ -1080,6 +1115,27 @@ public class Calculator extends Activity
         mResultText.announceForAccessibility(getResources().getString(R.string.cleared));
     }
 
+    /** Fade only expression content; never cover navigation or the keypad. */
+    private void animateDisplayChange(final Runnable change) {
+        final AnimatorSet animation = new AnimatorSet();
+        animation.playTogether(
+                ObjectAnimator.ofFloat(mFormulaContainer, View.ALPHA, 0f),
+                ObjectAnimator.ofFloat(mResultText, View.ALPHA, 0f));
+        animation.setDuration(100L);
+        animation.setInterpolator(new AccelerateDecelerateInterpolator());
+        animation.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                mCurrentAnimator = null;
+                change.run();
+                mFormulaContainer.setAlpha(1f);
+                mResultText.setAlpha(1f);
+            }
+        });
+        mCurrentAnimator = animation;
+        animation.start();
+    }
+
     public void onClearAnimationEnd() {
          mUnprocessedChars = null;
          mResultText.clear();
@@ -1094,6 +1150,13 @@ public class Calculator extends Activity
         }
         cancelIfEvaluating(true);
         announceClearedForAccessibility();
+        if (findViewById(R.id.show_history) != null) {
+            animateDisplayChange(() -> {
+                onClearAnimationEnd();
+                showOrHideToolbar();
+            });
+            return;
+        }
         reveal(mCurrentButton, R.color.calculator_primary_color, new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -1112,6 +1175,13 @@ public class Calculator extends Activity
         if (mCurrentState == CalculatorState.EVALUATE) {
             setState(CalculatorState.ANIMATE);
             mResultText.announceForAccessibility(getResources().getString(errorResourceId));
+            if (findViewById(R.id.show_history) != null) {
+                animateDisplayChange(() -> {
+                    setState(CalculatorState.ERROR);
+                    mResultText.onError(index, errorResourceId);
+                });
+                return;
+            }
             reveal(mCurrentButton, R.color.calculator_error_color,
                     new AnimatorListenerAdapter() {
                         @Override
@@ -1164,6 +1234,11 @@ public class Calculator extends Activity
             formulaTranslationY = -(findViewById(R.id.toolbar).getBottom()
                     + mFormulaContainer.getBottom());
         }
+        final boolean modernLayout = findViewById(R.id.show_history) != null;
+        if (modernLayout) {
+            // Fade the old formula in place instead of flying it through the toolbar.
+            formulaTranslationY = 0f;
+        }
 
         // Change the result's textColor to match the formula.
         final int formulaTextColor = mFormulaText.getCurrentTextColor();
@@ -1187,9 +1262,11 @@ public class Calculator extends Activity
                             PropertyValuesHolder.ofFloat(View.SCALE_Y, resultScale),
                             PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, resultTranslationY)),
                     ObjectAnimator.ofArgb(mResultText, TEXT_COLOR, formulaTextColor),
+                    ObjectAnimator.ofFloat(mFormulaContainer, View.ALPHA,
+                            modernLayout ? 0f : 1f),
                     ObjectAnimator.ofFloat(mFormulaContainer, View.TRANSLATION_Y,
                             formulaTranslationY));
-            animatorSet.setDuration(getResources().getInteger(
+            animatorSet.setDuration(modernLayout ? 180L : getResources().getInteger(
                     android.R.integer.config_longAnimTime));
             animatorSet.addListener(new AnimatorListenerAdapter() {
                 @Override
@@ -1207,6 +1284,7 @@ public class Calculator extends Activity
             mResultText.setTranslationY(resultTranslationY);
             mResultText.setTextColor(formulaTextColor);
             mFormulaContainer.setTranslationY(formulaTranslationY);
+            mFormulaContainer.setAlpha(modernLayout ? 0f : 1f);
             setState(CalculatorState.RESULT);
         }
     }
@@ -1222,6 +1300,8 @@ public class Calculator extends Activity
         mResultText.setTranslationX(0.0f);
         mResultText.setTranslationY(0.0f);
         mFormulaContainer.setTranslationY(0.0f);
+        mFormulaContainer.setAlpha(1f);
+        mResultText.setAlpha(1f);
 
         mFormulaText.requestFocus();
     }
@@ -1288,6 +1368,14 @@ public class Calculator extends Activity
             case R.id.menu_licenses:
                 startActivity(new Intent(this, Licenses.class));
                 return true;
+            case R.id.menu_source_code:
+                final String sourceUrl = getString(R.string.source_code_url);
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(sourceUrl)));
+                } catch (android.content.ActivityNotFoundException e) {
+                    displayMessage(getString(R.string.menu_source_code), sourceUrl);
+                }
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -1325,7 +1413,11 @@ public class Calculator extends Activity
 
     @Override
     public int getDisplayHeight() {
-        return mDisplayView.getMeasuredHeight();
+        // The landscape display is a full-height side panel. Only reserve the
+        // toolbar as the history drag handle, rather than the whole display.
+        return findViewById(R.id.show_history) != null
+                ? findViewById(R.id.toolbar).getMeasuredHeight()
+                : mDisplayView.getMeasuredHeight();
     }
 
     /* End override DragCallback methods */

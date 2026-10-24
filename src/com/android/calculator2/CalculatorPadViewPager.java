@@ -29,6 +29,8 @@ import android.view.ViewGroup;
 
 public class CalculatorPadViewPager extends ViewPager {
 
+    private boolean mFullWidthPages;
+
     private final PagerAdapter mStaticPagerAdapter = new PagerAdapter() {
         @Override
         public int getCount() {
@@ -85,7 +87,7 @@ public class CalculatorPadViewPager extends ViewPager {
 
         @Override
         public float getPageWidth(int position) {
-            return position == 1 ? 7.0f / 9.0f : 1.0f;
+            return !mFullWidthPages && position == 1 ? 7.0f / 9.0f : 1.0f;
         }
 
         @Override
@@ -178,6 +180,14 @@ public class CalculatorPadViewPager extends ViewPager {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
+        // The circular portrait keypad uses the entire width. The legacy negative
+        // margin would let the scientific page cover the rightmost key column.
+        mFullWidthPages = findViewById(R.id.smart_paren) != null;
+        if (mFullWidthPages) {
+            setPageMargin(0);
+            setPageTransformer(false, null);
+        }
+
         // Invalidate the adapter's data set since children may have been added during inflation.
         getAdapter().notifyDataSetChanged();
 
@@ -188,6 +198,11 @@ public class CalculatorPadViewPager extends ViewPager {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         try {
+            if (mFullWidthPages) {
+                // The normal pager handles complete pages without the legacy
+                // peeking-page hit test or its transformer drawing-order list.
+                return super.onInterceptTouchEvent(ev);
+            }
             // Always intercept touch events when a11y focused since otherwise they will be
             // incorrectly offset by a11y before being dispatched to children.
             if (isAccessibilityFocused() || super.onInterceptTouchEvent(ev)) {
@@ -239,6 +254,9 @@ public class CalculatorPadViewPager extends ViewPager {
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         try {
+            if (mFullWidthPages) {
+                return super.onTouchEvent(ev);
+            }
             // Allow both the gesture detector and super to handle the touch event so they both see
             // the full sequence of events. This should be safe since the gesture detector only
             // handle clicks and super only handles swipes.

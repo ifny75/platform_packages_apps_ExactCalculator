@@ -84,4 +84,8 @@
     <string name="dialog_clear" msgid="7137395395908350702">"Очистить историю и память?"</string>
     <string name="title_current_expression" msgid="2442754548537900591">"Текущее выражение"</string>
     <string name="no_history" msgid="4331262030447527188">"В истории нет записей"</string>
+    <string name="desc_parentheses">Открыть или закрыть скобку</string>
+    <string name="desc_change_sign">Изменить знак выражения</string>
+    <string name="desc_scientific">Показать или скрыть инженерные функции</string>
+    <string name="menu_source_code">Исходный код</string>
 </resources>

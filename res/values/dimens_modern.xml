@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="modern_formula_max">56sp</dimen>
+    <dimen name="modern_formula_min">24sp</dimen>
+    <dimen name="modern_result_size">24sp</dimen>
+</resources>
